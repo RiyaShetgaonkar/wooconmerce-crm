@@ -1,0 +1,17 @@
+# Dependencies & builds
+node_modules/
+dist/
+
+# Secrets — never commit real credentials
+.env
+.env.*
+!.env.example
+
+# Logs & OS/editor files
+*.log
+.DS_Store
+Thumbs.db
+.vscode/*
+!.vscode/extensions.json
+.idea/
+backend/.env
