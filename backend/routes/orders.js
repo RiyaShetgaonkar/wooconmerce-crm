@@ -6,6 +6,7 @@ const { query } = require('../config/db');
 const { REVENUE_STATUSES, PENDING_STATUSES } = require('../config/orderStatus');
 const { getSegmentBreakdown } = require('../services/customerStats');
 const { getThresholds } = require('../services/segmentation');
+const { itemsColumnsSql, getTopProducts } = require('../services/orderItems');
 const { HttpError } = require('../middleware/errorHandler');
 const {
   placeholders, escapeLike, str, parseId, parsePagination,
@@ -61,8 +62,9 @@ router.get('/orders', async (req, res) => {
   if (search) {
     const term = `%${escapeLike(search)}%`;
     where.push(`(CAST(o.wc_order_id AS CHAR) LIKE ? OR c.email LIKE ?
-                 OR CONCAT(c.first_name, ' ', c.last_name) LIKE ?)`);
-    params.push(term, term, term);
+                 OR CONCAT(c.first_name, ' ', c.last_name) LIKE ?
+                 OR EXISTS (SELECT 1 FROM order_items oi WHERE oi.order_id = o.id AND oi.product_name LIKE ?))`);
+    params.push(term, term, term, term);
   }
 
   const sortCol = SORT_COLUMNS[str(req.query.sort)] || SORT_COLUMNS.date_created;
@@ -77,7 +79,8 @@ router.get('/orders', async (req, res) => {
   const [rows, [{ total }]] = await Promise.all([
     query(
       `SELECT o.id, o.wc_order_id, o.total, o.currency, o.status, o.date_created,
-              o.customer_id, c.first_name, c.last_name, c.email
+              o.customer_id, c.first_name, c.last_name, c.email,
+              ${itemsColumnsSql('o')}
        ${fromSql}
        ORDER BY ${sortCol} ${dir}, o.id DESC
        LIMIT ${limit} OFFSET ${offset}`,
@@ -117,6 +120,7 @@ router.get('/dashboard/stats', async (req, res) => {
     segments,
     recentOrders,
     [tasks],
+    topProducts,
   ] = await Promise.all([
     query(
       `SELECT
@@ -149,7 +153,8 @@ router.get('/dashboard/stats', async (req, res) => {
     getSegmentBreakdown(),
     query(
       `SELECT o.id, o.wc_order_id, o.total, o.currency, o.status, o.date_created,
-              o.customer_id, c.first_name, c.last_name
+              o.customer_id, c.first_name, c.last_name,
+              ${itemsColumnsSql('o')}
        FROM orders o JOIN customers c ON c.id = o.customer_id
        ORDER BY o.date_created DESC
        LIMIT 5`
@@ -162,6 +167,7 @@ router.get('/dashboard/stats', async (req, res) => {
        FROM follow_up_tasks
        WHERE status = 'pending'`
     ),
+    getTopProducts(5),
   ]);
 
   const totalRevenue = Number(totals.total_revenue);
@@ -183,6 +189,7 @@ router.get('/dashboard/stats', async (req, res) => {
       revenueTrend,
       segments,
       recentOrders,
+      topProducts,
       tasks,
       config: {
         revenueStatuses: REVENUE_STATUSES,

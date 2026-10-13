@@ -50,6 +50,9 @@ const PROFILES = [
   () => [],
 ];
 
+const PRODUCTS = ['Smart Fitness Watch', 'Leather Laptop Bag', 'Wireless Earbuds Pro',
+  'Classic Cotton T-Shirt', 'Ceramic Coffee Mug Set (4 pcs)'];
+
 const NOTES = [
   ['call', 'Called to confirm delivery address. Very friendly, asked about bulk pricing.'],
   ['email', 'Sent follow-up email with care instructions for their last purchase.'],
@@ -96,10 +99,15 @@ async function seedDemo(conn) {
 
     for (const [daysAgo, total, status] of PROFILES[i % PROFILES.length]()) {
       const hours = Math.round(daysAgo * 24 + between(0, 20));
-      await conn.execute(
+      const [o] = await conn.execute(
         `INSERT INTO orders (wc_order_id, customer_id, total, currency, status, date_created)
          VALUES (?, ?, ?, 'USD', ?, UTC_TIMESTAMP() - INTERVAL ? HOUR)`,
         [wcOrderId++, customerId, Number(total).toFixed(2), status, hours]
+      );
+      const quantity = rand() > 0.7 ? 2 : 1;
+      await conn.execute(
+        'INSERT INTO order_items (order_id, product_name, quantity, total) VALUES (?, ?, ?, ?)',
+        [o.insertId, pick(PRODUCTS), quantity, Number(total).toFixed(2)]
       );
       counts.orders++;
     }

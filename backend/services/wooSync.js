@@ -22,7 +22,7 @@ const toMysqlDate = (gmt, local) => {
 
 async function writeToDb(customers, orders) {
   return transaction(async (conn) => {
-    const counts = { customersCreated: 0, customersUpdated: 0, ordersCreated: 0, ordersUpdated: 0, ordersSkipped: 0 };
+    const counts = { customersCreated: 0, customersUpdated: 0, ordersCreated: 0, ordersUpdated: 0, ordersSkipped: 0, items: 0 };
     const updatedCustomers = new Set();
     const createdCustomers = new Set();
     const [orderRows] = await conn.execute('SELECT wc_order_id FROM orders');
@@ -93,10 +93,12 @@ async function writeToDb(customers, orders) {
         });
       }
 
-      await conn.execute(
+      // LAST_INSERT_ID(id) makes insertId return the row id for updates too.
+      const [orderRes] = await conn.execute(
         `INSERT INTO orders (wc_order_id, customer_id, total, currency, status, date_created)
          VALUES (?, ?, ?, ?, ?, ?)
          ON DUPLICATE KEY UPDATE
+           id = LAST_INSERT_ID(id),
            customer_id = VALUES(customer_id), total = VALUES(total), currency = VALUES(currency),
            status = VALUES(status), date_created = VALUES(date_created)`,
         [
@@ -108,6 +110,26 @@ async function writeToDb(customers, orders) {
           toMysqlDate(o.date_created_gmt, o.date_created),
         ]
       );
+      // Replace the order's products with what WooCommerce has now.
+      const orderId = orderRes.insertId;
+      await conn.execute('DELETE FROM order_items WHERE order_id = ?', [orderId]);
+      for (const item of o.line_items || []) {
+        await conn.execute(
+          `INSERT INTO order_items (order_id, wc_item_id, wc_product_id, product_name, sku, quantity, total)
+           VALUES (?, ?, ?, ?, ?, ?, ?)`,
+          [
+            orderId,
+            item.id || null,
+            item.variation_id || item.product_id || null,
+            clean(item.name, 255) || 'Unnamed product',
+            clean(item.sku, 100) || null,
+            Math.max(0, Number(item.quantity) || 0),
+            Number(item.total) || 0,
+          ]
+        );
+        counts.items++;
+      }
+
       if (knownOrders.has(String(o.id))) counts.ordersUpdated++;
       else { counts.ordersCreated++; knownOrders.add(String(o.id)); }
     }
@@ -127,7 +149,7 @@ async function syncFromWoo() {
   const startedAt = new Date();
   try {
     const [customers, orders] = await Promise.all([
-      wooGetAll('customers', { role: 'all' }),
+      wooGetAll('customers'), // default role 'customer' (skips admins; their orders still import)
       wooGetAll('orders', { orderby: 'date', order: 'asc' }),
     ]);
     const counts = await writeToDb(customers, orders);

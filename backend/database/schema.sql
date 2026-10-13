@@ -71,6 +71,30 @@ CREATE TABLE IF NOT EXISTS orders (
 ) ENGINE=InnoDB;
 
 -- ---------------------------------------------------------------------
+-- order_items
+-- Products in each order (WooCommerce line_items). Replaced on every
+-- sync of the order, so no unique key on wc_item_id is needed.
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS order_items (
+  id             INT UNSIGNED     NOT NULL AUTO_INCREMENT,
+  order_id       INT UNSIGNED     NOT NULL,
+  wc_item_id     BIGINT UNSIGNED  NULL,
+  wc_product_id  BIGINT UNSIGNED  NULL,
+  product_name   VARCHAR(255)     NOT NULL,
+  sku            VARCHAR(100)     NULL,
+  quantity       INT UNSIGNED     NOT NULL DEFAULT 1,
+  total          DECIMAL(12,2)    NOT NULL DEFAULT 0.00,
+
+  PRIMARY KEY (id),
+  KEY idx_items_order (order_id),
+  KEY idx_items_product (wc_product_id),
+
+  CONSTRAINT fk_items_order
+    FOREIGN KEY (order_id) REFERENCES orders (id)
+    ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB;
+
+-- ---------------------------------------------------------------------
 -- interaction_notes
 -- Free-form notes a store owner records against a customer.
 -- ---------------------------------------------------------------------

@@ -407,3 +407,16 @@ button, input, select { font: inherit; color: inherit; }
 @media (prefers-reduced-motion: reduce) {
   .live-dot.on, .spinner { animation-duration: 0s; animation-iteration-count: 1; }
 }
+
+/* ---------- Order items / top products ---------- */
+.items-line { font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.items-cell { max-width: 280px; overflow-wrap: anywhere; }
+.product-list { list-style: none; margin: 0; padding: 0; }
+.product-list li { display: grid; grid-template-columns: 24px 1fr auto; align-items: center; gap: 10px; padding: 8px 0; border-top: 1px solid var(--border); }
+.product-list li:first-child { border-top: 0; padding-top: 0; }
+.rank {
+  width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center;
+  background: var(--surface-2); color: var(--text-2); font-size: 12px; font-weight: 700;
+}
+.product-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.product-stats { font-variant-numeric: tabular-nums; white-space: nowrap; }

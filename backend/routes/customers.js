@@ -6,6 +6,7 @@ const { query } = require('../config/db');
 const { SEGMENTS, getThresholds } = require('../services/segmentation');
 const { buildCustomerStatsQuery, getSegmentBreakdown } = require('../services/customerStats');
 const { HttpError } = require('../middleware/errorHandler');
+const { itemsColumnsSql } = require('../services/orderItems');
 const {
   escapeLike, str, parseId, parsePagination, parseOptionalNumber, paginationMeta,
 } = require('../utils/query');
@@ -100,9 +101,10 @@ router.get('/:id', async (req, res) => {
 
   const [orders, notes, tasks] = await Promise.all([
     query(
-      `SELECT id, wc_order_id, total, currency, status, date_created
-       FROM orders WHERE customer_id = ?
-       ORDER BY date_created DESC`,
+      `SELECT o.id, o.wc_order_id, o.total, o.currency, o.status, o.date_created,
+              ${itemsColumnsSql('o')}
+       FROM orders o WHERE o.customer_id = ?
+       ORDER BY o.date_created DESC`,
       [id]
     ),
     query(

@@ -1,0 +1,6 @@
+Type,SKU,Name,Published,Short description,Regular price,Categories,In stock?
+simple,TSHIRT-001,Classic Cotton T-Shirt,1,"Soft 100% cotton crew-neck tee, everyday fit.",9,Clothing,1
+simple,EARBUDS-001,Wireless Earbuds Pro,1,"Bluetooth 5.3 earbuds with 30-hour battery and charging case.",29,Electronics,1
+simple,BAG-001,Leather Laptop Bag,1,"Genuine leather bag that fits 15.6 inch laptops, with padded sleeve.",49,Accessories,1
+simple,MUG-001,Ceramic Coffee Mug Set (4 pcs),1,"Microwave-safe matte ceramic mugs, 350 ml each.",15,Home,1
+simple,WATCH-001,Smart Fitness Watch,1,"Heart-rate, SpO2 and sleep tracking, 7-day battery.",89,Electronics,1

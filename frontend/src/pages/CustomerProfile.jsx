@@ -70,12 +70,13 @@ function ProfileContent({ customer: c }) {
               <div className="table-wrap">
                 <table className="table">
                   <thead>
-                    <tr><th>Order</th><th>Date</th><th>Status</th><th className="num">Total</th></tr>
+                    <tr><th>Order</th><th>Items</th><th>Date</th><th>Status</th><th className="num">Total</th></tr>
                   </thead>
                   <tbody>
                     {c.orders.map((o) => (
                       <tr key={o.id}>
                         <td className="mono strong">#{o.wc_order_id}</td>
+                        <td className="items-cell">{o.items_summary || <span className="muted">—</span>}</td>
                         <td>{formatDate(o.date_created, true)}</td>
                         <td><StatusBadge status={o.status} /></td>
                         <td className="num amount">{money(o.total, o.currency)}</td>

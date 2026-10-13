@@ -98,7 +98,7 @@ export default function Orders() {
           <input
             type="search"
             className="input grow"
-            placeholder="Search order #, customer name or email…"
+            placeholder="Search order #, customer, email or product…"
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
             aria-label="Search orders"
@@ -153,6 +153,7 @@ export default function Orders() {
                 <tr>
                   <SortHeader label="Order" field="wc_order_id" {...sortProps} />
                   <th>Customer</th>
+                  <th>Items</th>
                   <SortHeader label="Date" field="date_created" {...sortProps} />
                   <SortHeader label="Status" field="status" {...sortProps} />
                   <SortHeader label="Total" field="total" align="right" {...sortProps} />
@@ -174,6 +175,10 @@ export default function Orders() {
                     <td>
                       <div>{formatDate(o.date_created, true)}</div>
                       <div className="muted small">{formatRelative(o.date_created)}</div>
+                    </td>
+                    <td className="items-cell" title={o.items_summary || ''}>
+                      {o.items_summary || <span className="muted">—</span>}
+                      {o.item_count > 0 && <div className="muted small">{o.item_count} item{o.item_count > 1 ? 's' : ''}</div>}
                     </td>
                     <td><StatusBadge status={o.status} /></td>
                     <td className="num amount">{money(o.total, o.currency)}</td>

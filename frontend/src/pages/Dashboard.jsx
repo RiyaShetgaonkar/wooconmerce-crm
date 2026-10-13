@@ -39,7 +39,7 @@ export default function Dashboard() {
     );
   }
 
-  const { totals, recentOrders, segments, tasks } = data;
+  const { totals, recentOrders, segments, tasks, topProducts = [] } = data;
   const totalSegmentCustomers = segments.reduce((sum, s) => sum + Number(s.count), 0);
 
   return (
@@ -96,6 +96,9 @@ export default function Dashboard() {
                       <span className="muted"> placed order </span>
                       <span className="mono">#{o.wc_order_id}</span>
                     </div>
+                    <div className="items-line" title={o.items_summary || ''}>
+                      <span aria-hidden="true">🛍 </span>{o.items_summary || <span className="muted">No item details</span>}
+                    </div>
                     <div className="muted small">{formatRelative(o.date_created)}</div>
                   </div>
                   <div className="activity-meta">
@@ -109,6 +112,31 @@ export default function Dashboard() {
         </section>
 
         <div className="stack">
+          <section className="card">
+            <div className="card-header">
+              <h2>Top products</h2>
+              <span className="muted small">by units sold</span>
+            </div>
+            {topProducts.length === 0 ? (
+              <p className="muted small empty-hint">No product data yet — run a WooCommerce sync.</p>
+            ) : (
+              <ol className="product-list">
+                {topProducts.map((p, i) => (
+                  <li key={p.product_name}>
+                    <span className="rank">{i + 1}</span>
+                    <Link to={`/orders?search=${encodeURIComponent(p.product_name)}`} className="product-name strong-link">
+                      {p.product_name}
+                    </Link>
+                    <span className="product-stats">
+                      <strong>{formatNumber(p.quantity)}</strong> sold
+                      <span className="muted small"> · {money(p.revenue)}</span>
+                    </span>
+                  </li>
+                ))}
+              </ol>
+            )}
+          </section>
+
           <section className="card">
             <div className="card-header">
               <h2>Customer segments</h2>
