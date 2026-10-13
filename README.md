@@ -6,6 +6,8 @@ what was bought, and helps you follow up with the right customers at the right t
 
 **Stack:** React 19 + Vite · Node.js + Express 5 · MySQL 8 · WooCommerce REST API (v3)
 
+video link: https://drive.google.com/file/d/1CFuV8opyEjzlPgoCvuwjJ_j2QuVCguMh/view?usp=drive_link
+
 ---
 
 ## Features
